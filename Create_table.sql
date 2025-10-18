@@ -23,11 +23,20 @@ create table bookType(
     bookTypeName nvarchar(100) not null
 );
 
+create table Book(
+	bookID int auto_increment primary key ,
+    bookName nvarchar(100) not null,
+    PublishYear int,
+    rentalPrice decimal(10, 0) not null,    
+    publisherID int not null,
+    foreign key (publisherID) references Publisher(publisherID) ON DELETE CASCADE
+);
+
 -- kiểm tra ngày trước khi lưu vô db
 DELIMITER //
 
 CREATE TRIGGER check_publish_year_before_insert
-BEFORE INSERT ON Books
+BEFORE INSERT ON Book
 FOR EACH ROW
 BEGIN
     IF NEW.PublishYear < 1000 OR NEW.PublishYear > YEAR(CURDATE()) THEN
@@ -38,15 +47,6 @@ END;
 //
 
 DELIMITER ;
-
-create table Book(
-	bookID int auto_increment primary key ,
-    bookName nvarchar(100) not null,
-    PublishYear int,
-    rentalPrice decimal(10, 0) not null,    
-    publisherID int not null,
-    foreign key (publisherID) references Publisher(publisherID) ON DELETE CASCADE
-);
 
 create table bookCopy(
 	copyID int auto_increment primary key, 
@@ -133,7 +133,6 @@ MODIFY COLUMN status ENUM('Active', 'Inactive', 'Expired', 'Blocked') DEFAULT 'A
 -- Trigger 1: Tự động điền bookConditionOut
 DELIMITER //
 
-DROP TRIGGER IF EXISTS trg_before_loan_detail_insert_set_condition;
 CREATE TRIGGER trg_before_loan_detail_insert_set_condition
 BEFORE INSERT ON bookLoans_detail
 FOR EACH ROW
@@ -153,7 +152,6 @@ DELIMITER ;
 -- Trigger 2: Cập nhật trạng thái sách (giống trigger cũ của bạn)
 DELIMITER //
 
-DROP TRIGGER IF EXISTS trg_after_loan_detail_insert;
 CREATE TRIGGER trg_after_loan_detail_insert
 AFTER INSERT ON bookLoans_detail
 FOR EACH ROW
@@ -168,7 +166,6 @@ DELIMITER ;
 -- Trigger tự động cập nhật trạng thái sách KHI TRẢ SÁCH
 DELIMITER //
 
-DROP TRIGGER IF EXISTS trg_after_loan_detail_update; -- Xóa trigger cũ nếu tồn tại để tránh lỗi
 CREATE TRIGGER trg_after_loan_detail_update
 AFTER UPDATE ON bookLoans_detail
 FOR EACH ROW
