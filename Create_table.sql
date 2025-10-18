@@ -23,10 +23,26 @@ create table bookType(
     bookTypeName nvarchar(100) not null
 );
 
+-- kiểm tra ngày trước khi lưu vô db
+DELIMITER //
+
+CREATE TRIGGER check_publish_year_before_insert
+BEFORE INSERT ON Books
+FOR EACH ROW
+BEGIN
+    IF NEW.PublishYear < 1000 OR NEW.PublishYear > YEAR(CURDATE()) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'PublishYear must be between 1000 and current year';
+    END IF;
+END;
+//
+
+DELIMITER ;
+
 create table Book(
 	bookID int auto_increment primary key ,
     bookName nvarchar(100) not null,
-    PublishYear int CHECK (publishYear >= 1000 AND publishYear <= YEAR(CURDATE())),
+    PublishYear int,
     rentalPrice decimal(10, 0) not null,    
     publisherID int not null,
     foreign key (publisherID) references Publisher(publisherID) ON DELETE CASCADE
