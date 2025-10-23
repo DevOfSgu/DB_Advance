@@ -1,4 +1,4 @@
-use mg_library;
+use library_management;
 
 create table Publisher(
 	publisherID int auto_increment primary key,
@@ -36,7 +36,7 @@ create table Book(
 DELIMITER //
 
 CREATE TRIGGER check_publish_year_before_insert
-BEFORE INSERT ON Book
+BEFORE INSERT ON Book 
 FOR EACH ROW
 BEGIN
     IF NEW.PublishYear < 1000 OR NEW.PublishYear > YEAR(CURDATE()) THEN
@@ -77,8 +77,8 @@ create table book_Booktype(
 create table Member(
 	memberID int auto_increment primary key,
     memberName nvarchar(50) not null,
-    memberDate date not null,
-    memberLocation nvarchar(100),
+    dayOfBirth date not null,
+    memberAddress nvarchar(100),
     memberPhoneNumber varchar(10) not null unique,
     memberEmail varchar(50) unique,
     createCardDate date not null default (curdate()),
@@ -89,11 +89,11 @@ create table Member(
 create table Librarian(
 	librarianID int auto_increment primary key,
     librarianName nvarchar(50) not null,
-    librarianDate date,
+    dayOfBirth date,
     librarianPhoneNumber varchar(10) not null unique
 );
 
-create table bookLoans(
+create table bookLoan(
 	loanID int auto_increment primary key,
     memberID int, 
     librarianID int,
@@ -104,14 +104,14 @@ create table bookLoans(
     foreign key (librarianID) references Librarian(librarianID) ON DELETE SET NULL
 );
 
-create table bookLoans_detail(
+create table bookLoanDetail(
 	loanDetailID int auto_increment primary key,
 	loanID int not null,
     copyID int not null,
     returnDate date,
 	bookConditionOut ENUM('New', 'Good', 'Fair', 'Damaged') DEFAULT 'Good',
 	bookConditionIn ENUM('New', 'Good', 'Fair', 'Damaged') DEFAULT 'Good',
-    foreign key (loanID) references bookLoans(loanID) ON DELETE CASCADE,
+    foreign key (loanID) references bookLoan(loanID) ON DELETE CASCADE,
     foreign key (copyID) references bookCopy(copyID) ON DELETE CASCADE,
     unique key uk_loan_copy (loanID, copyID)
 );
@@ -123,7 +123,7 @@ create table Penalty(
     fine decimal(10, 0) not null, 
     processDate date,
     status ENUM('Unpaid', 'Paid') default 'Unpaid',
-    foreign key (loanDetailID) references bookloans_detail(loanDetailID) ON DELETE CASCADE    
+    foreign key (loanDetailID) references bookloanDetail(loanDetailID) ON DELETE CASCADE    
 );
 
 ALTER TABLE Member
@@ -134,7 +134,7 @@ MODIFY COLUMN status ENUM('Active', 'Inactive', 'Expired', 'Blocked') DEFAULT 'A
 DELIMITER //
 
 CREATE TRIGGER trg_before_loan_detail_insert_set_condition
-BEFORE INSERT ON bookLoans_detail
+BEFORE INSERT ON bookLoanDetail
 FOR EACH ROW
 BEGIN
     DECLARE v_book_condition ENUM('New', 'Good', 'Fair', 'Damaged');
@@ -153,7 +153,7 @@ DELIMITER ;
 DELIMITER //
 
 CREATE TRIGGER trg_after_loan_detail_insert
-AFTER INSERT ON bookLoans_detail
+AFTER INSERT ON bookLoanDetail
 FOR EACH ROW
 BEGIN
     UPDATE bookCopy
@@ -167,7 +167,7 @@ DELIMITER ;
 DELIMITER //
 
 CREATE TRIGGER trg_after_loan_detail_update
-AFTER UPDATE ON bookLoans_detail
+AFTER UPDATE ON bookLoanDetail
 FOR EACH ROW
 BEGIN
     -- Chỉ thực hiện khi sách được trả (returnDate từ NULL thành có giá trị)
@@ -199,7 +199,7 @@ DELIMITER ;
 DELIMITER //
 
 CREATE TRIGGER trg_create_penalty_on_return
-AFTER UPDATE ON bookLoans_detail
+AFTER UPDATE ON bookLoanDetail
 FOR EACH ROW
 BEGIN
     DECLARE v_due_date DATE;
@@ -247,8 +247,8 @@ BEGIN
 
     -- Tìm memberID từ loanDetailID của phiếu phạt mới
     SELECT bl.memberID INTO v_member_id
-    FROM bookLoans bl
-    JOIN bookLoans_detail bld ON bl.loanID = bld.loanID
+    FROM bookLoan bl
+    JOIN bookLoanDetail bld ON bl.loanID = bld.loanID
     WHERE bld.loanDetailID = NEW.loanDetailID;
 
     -- Cập nhật trạng thái thành viên thành 'Inactive'
@@ -275,7 +275,7 @@ BEGIN
         -- Tìm memberID và ngày hết hạn thẻ
         SELECT bl.memberID, m.expiredDate INTO v_member_id, v_expired_date
         FROM bookLoans bl
-        JOIN bookLoans_detail bld ON bl.loanID = bld.loanID
+        JOIN bookLoanDetail bld ON bl.loanID = bld.loanID
         JOIN Member m ON m.memberID = bl.memberID
         WHERE bld.loanDetailID = NEW.loanDetailID;
 

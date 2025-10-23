@@ -194,7 +194,7 @@ INSERT INTO book_Booktype (bookID, bookTypeID) VALUES
 (10, 1);
 
 -- Dữ liệu mẫu cho bảng Member
-INSERT INTO Member (memberName, memberDate, memberLocation, memberPhoneNumber, memberEmail, createCardDate, expiredDate, status) VALUES
+INSERT INTO Member (memberName, dayOfBirth, memberAddress, memberPhoneNumber, memberEmail, createCardDate, expiredDate, status) VALUES
 ('Nguyễn Văn An', '1990-05-15', '123 Đường Láng, Đống Đa, Hà Nội', '0987654321', 'an.nguyen@example.com', '2023-01-10', '2024-01-10', 'Active'),
 ('Trần Thị Bích', '1985-11-20', '45 Nguyễn Trãi, Quận 1, TP. Hồ Chí Minh', '0912345678', 'bich.tran@example.com', '2022-11-05', '2023-11-05', 'Inactive'),
 ('Lê Minh Cường', '2002-01-30', '25 Hàng Bông, Hoàn Kiếm, Hà Nội', '0334567890', 'cuong.le@example.com', '2023-08-20', '2024-08-20', 'Active'),
@@ -207,7 +207,7 @@ INSERT INTO Member (memberName, memberDate, memberLocation, memberPhoneNumber, m
 ('Ngô Bảo Châu', '2000-02-14', '22 Bùi Viện, Quận 1, TP. Hồ Chí Minh', '0355999000', 'chau.ngo@example.com', '2022-10-10', '2023-10-10', 'Active');
 
 -- Dữ liệu mẫu cho bảng Librarian
-INSERT INTO Librarian (librarianName, librarianDate, librarianPhoneNumber) VALUES
+INSERT INTO Librarian (librarianName, dayOfBirth, librarianPhoneNumber) VALUES
 ('Nguyễn Thu Trang', '1988-09-21', '0912345670'),
 ('Lê Văn Minh', '1975-02-10', '0987654320'),
 ('Trần Hoàng Long', '1995-06-18', '0334455667'),
@@ -215,7 +215,7 @@ INSERT INTO Librarian (librarianName, librarianDate, librarianPhoneNumber) VALUE
 ('Vũ Đức Bảo', '1992-04-25', '0905987654');
 
 -- Dữ liệu mẫu cho bảng bookLoans
-INSERT INTO bookLoans (memberID, librarianID, borrowDate, dueDate, status) VALUES
+INSERT INTO bookLoan (memberID, librarianID, borrowDate, dueDate, status) VALUES
 -- Tình huống 1: Phiếu đang mượn, còn hạn
 (1, 1, CURDATE() - INTERVAL 7 DAY, CURDATE() + INTERVAL 7 DAY, 'Borrowed'),
 
@@ -247,7 +247,7 @@ INSERT INTO bookLoans (memberID, librarianID, borrowDate, dueDate, status) VALUE
 (10, 5, CURDATE() - INTERVAL 5 DAY, CURDATE() + INTERVAL 9 DAY, 'Borrowed');
 
 -- Dữ liệu mẫu cho bảng bookLoans_detail
-INSERT INTO bookLoans_detail (loanID, copyID, returnDate, bookConditionOut, bookConditionIn) VALUES
+INSERT INTO bookLoanDetail (loanID, copyID, returnDate, bookConditionOut, bookConditionIn) VALUES
 -- Chi tiết cho loanID = 1 (Đang mượn)
 (1, 3, NULL, 'Good', NULL),  -- Mượn cuốn 'Cho tôi xin một vé đi tuổi thơ'
 (1, 47, NULL, 'New', NULL), -- Mượn cuốn 'Mắt biếc'
