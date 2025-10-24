@@ -1,4 +1,4 @@
-use mg_library;
+use library_management;
 
 -- Dữ liệu mẫu cho bảng Publisher
 INSERT INTO Publisher (publisherName, address) VALUES
@@ -170,6 +170,11 @@ INSERT INTO Member (memberName, dayOfBirth, memberAddress, memberPhoneNumber, me
 
 -- Dữ liệu mẫu cho bảng Librarian
 INSERT INTO Librarian (librarianName, dayOfBirth, librarianPhoneNumber) VALUES
+('Hoàng Thị Lan', '1998-01-15', '0915123456'),
+('Đỗ Mạnh Hùng', '1985-07-20', '0988777666'),
+('Bùi Thu Phương', '2001-12-05', '0333222111'),
+('Phan Văn Đức', '1994-03-30', '0866555444'),
+('Võ Thị Kim Chi', '1992-10-13', '0909888999'),
 ('Nguyễn Thu Trang', '1988-09-21', '0912345670'),
 ('Lê Văn Minh', '1975-02-10', '0987654320'),
 ('Trần Hoàng Long', '1995-06-18', '0334455667'),
@@ -211,34 +216,110 @@ INSERT INTO bookLoan (memberID, librarianID, borrowDate, dueDate, status) VALUES
 -- Dữ liệu mẫu cho bảng bookLoans_detail
 INSERT INTO bookLoanDetail (loanID, copyID, returnDate, bookConditionOut, bookConditionIn) VALUES
 -- Chi tiết cho loanID = 1 (Đang mượn)
-(1, 3, NULL, 'Good', NULL),  -- Mượn cuốn 'Cho tôi xin một vé đi tuổi thơ'
-(1, 47, NULL, 'New', NULL), -- Mượn cuốn 'Mắt biếc'
+(1, 3, NULL, 'Good', NULL),
+(1, 47, NULL, 'New', NULL),
 
 -- Chi tiết cho loanID = 2 (Quá hạn)
-(2, 9, NULL, 'Good', NULL),  -- Mượn cuốn 'Dế Mèn phiêu lưu ký'
+(2, 9, NULL, 'Good', NULL),
 
 -- Chi tiết cho loanID = 3 (Đã trả)
-(3, 6, '2023-09-14', 'New', 'New'), -- Trả cuốn 'Dế Mèn phiêu lưu ký'
-(3, 11, '2023-09-14', 'New', 'New'),-- Trả cuốn 'Harry Potter...'
+(3, 6, '2023-09-14', 'New', 'New'),
+(3, 11, '2023-09-14', 'New', 'New'),
 
--- Chi tiết cho loanID = 4 (Đã trả, nhưng trả muộn và làm hỏng sách)
-(4, 13, CURDATE() - INTERVAL 4 DAY, 'Good', 'Damaged'), -- Trả cuốn 'Harry Potter...'
+-- === SỬA LỖI LOGIC TẠI ĐÂY ===
+-- Chi tiết cho loanID = 4 (Bây giờ là ĐANG MƯỢN, sẽ được UPDATE sau để tạo phạt)
+(4, 13, NULL, 'Good', NULL), -- Đổi returnDate thành NULL
 
 -- Chi tiết cho loanID = 5 (Đang mượn)
-(5, 20, NULL, 'Good', NULL), -- Mượn cuốn 'Hoàng tử bé'
+(5, 20, NULL, 'Good', NULL),
 
 -- Chi tiết cho loanID = 6 (Đã trả)
-(6, 31, '2023-08-28', 'New', 'New'), -- Trả cuốn 'Nhà giả kim'
+(6, 31, '2023-08-28', 'New', 'New'),
 
 -- Chi tiết cho loanID = 7 (Đang mượn)
-(7, 41, NULL, 'New', NULL), -- Mượn cuốn 'Án mạng trên sông Nile'
-(7, 21, NULL, 'Good', NULL),-- Mượn cuốn 'Lão Hạc'
+(7, 41, NULL, 'New', NULL),
+(7, 21, NULL, 'Good', NULL),
 
 -- Chi tiết cho loanID = 8 (Đã trả)
-(8, 26, '2022-01-20', 'New', 'New'), -- Trả cuốn 'Đắc nhân tâm'
+(8, 26, '2022-01-20', 'New', 'New'),
 
 -- Chi tiết cho loanID = 9 (Đã trả)
-(9, 1, '2023-07-15', 'New', 'New'), -- Trả cuốn 'Cho tôi xin một vé đi tuổi thơ'
+(9, 1, '2023-07-15', 'New', 'New'),
 
 -- Chi tiết cho loanID = 10 (Đang mượn)
-(10, 37, NULL, 'Good', NULL); -- Mượn cuốn 'Rừng Na Uy'
+(10, 37, NULL, 'Good', NULL);
+
+-- Tạo phiếu phạt
+
+-- BƯỚC 0: KIỂM TRA TRẠNG THÁI BAN ĐẦU (kết quả phải là 0)
+SELECT COUNT(*) AS SoPhieuPhat_BanDau FROM Penalty;
+
+
+-- BƯỚC 1: KÍCH HOẠT TRIGGER TRÊN 7 DÒNG DỮ LIỆU CÓ SẴN (đang mượn)
+
+-- Phạt 1: Trả muộn (loanID=2, loanDetailID=3)
+UPDATE bookLoanDetail SET returnDate = CURDATE() WHERE loanDetailID = 3;
+
+-- Phạt 2: Trả đúng hạn nhưng làm hỏng sách (loanID=1, loanDetailID=1)
+UPDATE bookLoanDetail SET returnDate = CURDATE(), bookConditionIn = 'Damaged' WHERE loanDetailID = 1;
+
+-- Phạt 3: Trả đúng hạn nhưng làm hỏng sách (loanID=1, loanDetailID=2)
+UPDATE bookLoanDetail SET returnDate = CURDATE(), bookConditionIn = 'Damaged' WHERE loanDetailID = 2;
+
+-- === SỬA LỖI TẠI ĐÂY ===
+-- Phạt 4: Trả đúng hạn nhưng làm hỏng sách (mô phỏng cho trường hợp mất sách)
+-- Đổi 'Lost' thành 'Damaged' để phù hợp với ENUM của bảng
+UPDATE bookLoanDetail SET returnDate = CURDATE(), bookConditionIn = 'Damaged' WHERE loanDetailID = 7;
+
+-- Phạt 5: Trả đúng hạn nhưng làm hỏng sách (loanID=7, loanDetailID=9)
+UPDATE bookLoanDetail SET returnDate = CURDATE(), bookConditionIn = 'Damaged' WHERE loanDetailID = 9;
+
+-- Phạt 6: Trả đúng hạn nhưng làm hỏng sách (loanID=7, loanDetailID=10)
+UPDATE bookLoanDetail SET returnDate = CURDATE(), bookConditionIn = 'Damaged' WHERE loanDetailID = 10;
+
+-- Phạt 7: Trả đúng hạn nhưng làm hỏng sách (loanID=10, loanDetailID=13)
+UPDATE bookLoanDetail SET returnDate = CURDATE(), bookConditionIn = 'Damaged' WHERE loanDetailID = 13;
+
+
+-- BƯỚC 2: TẠO THÊM 3 PHIẾU MƯỢN MỚI ĐỂ KÍCH HOẠT TRIGGER
+
+-- Tạo phiếu mượn mới (sẽ bị quá hạn)
+INSERT INTO bookLoan (memberID, librarianID, borrowDate, dueDate, status) VALUES
+(3, 1, CURDATE() - INTERVAL 20 DAY, CURDATE() - INTERVAL 5 DAY, 'Borrowed'); -- loanID sẽ là 11
+
+-- Tạo chi tiết cho phiếu mượn trên
+INSERT INTO bookLoanDetail (loanID, copyID, returnDate, bookConditionOut, bookConditionIn) VALUES
+(11, 4, NULL, 'Good', NULL); -- loanDetailID sẽ là 14
+
+-- Tạo phiếu mượn mới (sẽ trả đúng hạn)
+INSERT INTO bookLoan (memberID, librarianID, borrowDate, dueDate, status) VALUES
+(4, 2, CURDATE() - INTERVAL 2 DAY, CURDATE() + INTERVAL 12 DAY, 'Borrowed'); -- loanID sẽ là 12
+
+-- Tạo chi tiết cho phiếu mượn trên
+INSERT INTO bookLoanDetail (loanID, copyID, returnDate, bookConditionOut, bookConditionIn) VALUES
+(12, 8, NULL, 'New', NULL); -- loanDetailID sẽ là 15
+
+-- Tạo phiếu mượn mới (sẽ bị quá hạn)
+INSERT INTO bookLoan (memberID, librarianID, borrowDate, dueDate, status) VALUES
+(6, 3, CURDATE() - INTERVAL 40 DAY, CURDATE() - INTERVAL 25 DAY, 'Borrowed'); -- loanID sẽ là 13
+
+-- Tạo chi tiết cho phiếu mượn trên
+INSERT INTO bookLoanDetail (loanID, copyID, returnDate, bookConditionOut, bookConditionIn) VALUES
+(13, 11, NULL, 'New', NULL); -- loanDetailID sẽ là 16
+
+
+-- BƯỚC 3: KÍCH HOẠT TRIGGER TRÊN 3 DÒNG DỮ LIỆU VỪA TẠO
+
+-- Phạt 8: Trả muộn (loanID=11, loanDetailID=14)
+UPDATE bookLoanDetail SET returnDate = CURDATE() WHERE loanDetailID = 14;
+
+-- Phạt 9: Trả đúng hạn nhưng làm hỏng sách (loanID=12, loanDetailID=15)
+UPDATE bookLoanDetail SET returnDate = CURDATE(), bookConditionIn = 'Damaged' WHERE loanDetailID = 15;
+
+-- Phạt 10: Trả muộn VÀ làm hỏng sách (loanID=13, loanDetailID=16)
+UPDATE bookLoanDetail SET returnDate = CURDATE(), bookConditionIn = 'Damaged' WHERE loanDetailID = 16;
+
+
+-- BƯỚC 4: KIỂM TRA LẠI KẾT QUẢ CUỐI CÙNG
+SELECT * FROM Penalty;
+SELECT COUNT(*) AS SoPhieuPhat_SauKhiChay FROM Penalty; -- Kết quả phải là 10

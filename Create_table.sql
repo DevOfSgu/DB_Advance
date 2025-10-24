@@ -203,7 +203,7 @@ BEGIN
     -- Chỉ thực hiện khi sách được trả
     IF OLD.returnDate IS NULL AND NEW.returnDate IS NOT NULL THEN
         -- Lấy ngày hẹn trả từ bảng bookLoans
-        SELECT dueDate INTO v_due_date FROM bookLoans WHERE loanID = NEW.loanID;
+        SELECT dueDate INTO v_due_date FROM bookLoan WHERE loanID = NEW.loanID;
 
         -- Kiểm tra nếu trả muộn
         IF NEW.returnDate > v_due_date THEN
@@ -268,7 +268,7 @@ BEGIN
     IF OLD.status = 'Unpaid' AND NEW.status = 'Paid' THEN
         -- Tìm memberID và ngày hết hạn thẻ
         SELECT bl.memberID, m.expiredDate INTO v_member_id, v_expired_date
-        FROM bookLoans bl
+        FROM bookLoan bl
         JOIN bookLoanDetail bld ON bl.loanID = bld.loanID
         JOIN Member m ON m.memberID = bl.memberID
         WHERE bld.loanDetailID = NEW.loanDetailID;
@@ -277,8 +277,8 @@ BEGIN
             -- Đếm số phiếu phạt chưa thanh toán còn lại của thành viên này
             SELECT COUNT(*) INTO v_unpaid_count
             FROM Penalty p
-            JOIN bookLoans_detail bld ON p.loanDetailID = bld.loanDetailID
-            JOIN bookLoans bl ON bld.loanID = bl.loanID
+            JOIN bookLoan_detail bld ON p.loanDetailID = bld.loanDetailID
+            JOIN bookLoan bl ON bld.loanID = bl.loanID
             WHERE bl.memberID = v_member_id AND p.status = 'Unpaid';
 
             -- Nếu không còn phiếu phạt nào, mở khóa thẻ
@@ -315,4 +315,4 @@ BEGIN
     WHERE expiredDate < CURDATE() AND status = 'Active';
 END //
 
-DELIMITER ;
+DELIMITER ;        
