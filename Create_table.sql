@@ -25,11 +25,13 @@ create table bookType(
 
 create table Book(
 	bookID int auto_increment primary key ,
+    bookTypeID int,
     bookName nvarchar(100) not null,
     PublishYear int,
     rentalPrice decimal(10, 0) not null,    
     publisherID int not null,
-    foreign key (publisherID) references Publisher(publisherID) ON DELETE CASCADE
+    foreign key (publisherID) references Publisher(publisherID) ON DELETE CASCADE,
+    foreign key (bookTypeID) references bookType(bookTypeID) ON DELETE CASCADE
 );
 
 -- kiểm tra ngày trước khi lưu vô db
@@ -66,14 +68,6 @@ create table book_Author(
     foreign key (authorID) references Author(authorID) ON DELETE CASCADE
 );
 
-create table book_Booktype(
-	bookID int not null,
-    bookTypeID int not null,
-    primary key (bookID, bookTypeID),
-    foreign key (bookID) references Book(bookID) ON DELETE CASCADE,
-    foreign key (bookTypeID) references bookType(bookTypeID) ON DELETE CASCADE
-);
-	
 create table Member(
 	memberID int auto_increment primary key,
     memberName nvarchar(50) not null,

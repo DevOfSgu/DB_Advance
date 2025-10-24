@@ -53,17 +53,17 @@ INSERT INTO bookType (bookTypeName) VALUES
 ('Tâm lý học');
 
 -- -- Dữ liệu mẫu cho bảng Book
-INSERT INTO Book (bookName, PublishYear, rentalPrice, publisherID) VALUES
-('Cho tôi xin một vé đi tuổi thơ', 2008, 15000, 2), -- NXB Trẻ
-('Dế Mèn phiêu lưu ký', 2018, 12000, 1), -- NXB Kim Đồng
-('Harry Potter và Hòn đá Phù thủy', 2017, 25000, 2), -- NXB Trẻ
-('Hoàng tử bé', 2019, 10000, 6), -- Nhã Nam
-('Lão Hạc (Tuyển tập truyện ngắn)', 2015, 8000, 5), -- NXB Văn học
-('Đắc nhân tâm', 2020, 18000, 7), -- Alpha Books
-('Nhà giả kim', 2018, 16000, 6), -- Nhã Nam
-('Rừng Na Uy', 2016, 22000, 6), -- Nhã Nam
-('Án mạng trên sông Nile', 2019, 17000, 2), -- NXB Trẻ
-('Mắt biếc', 2019, 15000, 2); -- NXB Trẻ
+INSERT INTO Book (bookName, bookTypeID, PublishYear, rentalPrice, publisherID) VALUES
+('Cho tôi xin một vé đi tuổi thơ', 3, 2008, 15000, 2), -- Sách Thiếu nhi - NXB Trẻ
+('Dế Mèn phiêu lưu ký', 3, 2018, 12000, 1), -- Sách Thiếu nhi - NXB Kim Đồng
+('Harry Potter và Hòn đá Phù thủy', 8, 2017, 25000, 2), -- Khoa học viễn tưởng - NXB Trẻ
+('Hoàng tử bé', 3, 2019, 10000, 6), -- Sách Thiếu nhi - Nhã Nam
+('Lão Hạc (Tuyển tập truyện ngắn)', 2, 2015, 8000, 5), -- Truyện ngắn - NXB Văn học
+('Đắc nhân tâm', 5, 2020, 18000, 7), -- Kỹ năng sống - Alpha Books
+('Nhà giả kim', 1, 2018, 16000, 6), -- Tiểu thuyết - Nhã Nam
+('Rừng Na Uy', 1, 2016, 22000, 6), -- Tiểu thuyết - Nhã Nam
+('Án mạng trên sông Nile', 9, 2019, 17000, 2), -- Trinh thám - NXB Trẻ
+('Mắt biếc', 1, 2019, 15000, 2); -- Tiểu thuyết - NXB Trẻ
 
 -- Dữ liệu mẫu cho bảng BookCopy
 INSERT INTO bookCopy (bookID, locationID, bookCondition, status) VALUES
@@ -154,44 +154,6 @@ INSERT INTO book_Author (bookID, authorID) VALUES
 -- Giả sử sách 'Đắc nhân tâm' có thêm một người biên soạn/hiệu đính chính
 (6, 7);  -- 'Đắc nhân tâm' cũng được liên kết với Paulo Coelho (minh họa sách có nhiều tác giả)
 
--- Dữ liệu mẫu cho bảng book Booktype
-INSERT INTO book_Booktype (bookID, bookTypeID) VALUES
--- Cho tôi xin một vé đi tuổi thơ (Tiểu thuyết, Sách Thiếu nhi)
-(1, 1),
-(1, 3),
-
--- Dế Mèn phiêu lưu ký (Tiểu thuyết, Sách Thiếu nhi)
-(2, 1),
-(2, 3),
-
--- Harry Potter và Hòn đá Phù thủy (Tiểu thuyết, Khoa học viễn tưởng/Fantasy)
-(3, 1),
-(3, 8),
-
--- Hoàng tử bé (Tiểu thuyết, Sách Thiếu nhi)
-(4, 1),
-(4, 3),
-
--- Lão Hạc (Tuyển tập truyện ngắn)
-(5, 2),
-
--- Đắc nhân tâm (Kỹ năng sống, Tâm lý học)
-(6, 5),
-(6, 10),
-
--- Nhà giả kim (Tiểu thuyết)
-(7, 1),
-
--- Rừng Na Uy (Tiểu thuyết, Tâm lý học)
-(8, 1),
-(8, 10),
-
--- Án mạng trên sông Nile (Tiểu thuyết, Trinh thám)
-(9, 1),
-(9, 9),
-
--- Mắt biếc (Tiểu thuyết)
-(10, 1);
 
 -- Dữ liệu mẫu cho bảng Member
 INSERT INTO Member (memberName, dayOfBirth, memberAddress, memberPhoneNumber, memberEmail, createCardDate, expiredDate, status) VALUES
