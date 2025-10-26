@@ -248,6 +248,12 @@ INSERT INTO bookLoanDetail (loanID, copyID, returnDate, bookConditionOut, bookCo
 -- Chi tiết cho loanID = 10 (Đang mượn)
 (10, 37, NULL, 'Good', NULL);
 
+-- Dữ liệu bảng FineRates
+INSERT INTO FineRates (violationCode, description, fineAmount) VALUES
+('LATE_RETURN', 'Phí phạt trả sách muộn', 20000),
+('BOOK_DAMAGE', 'Phí phạt làm hỏng sách', 50000),
+('BOOK_LOST', 'Phí phạt làm mất sách', 100000);
+
 -- Tạo phiếu phạt
 
 -- BƯỚC 0: KIỂM TRA TRẠNG THÁI BAN ĐẦU (kết quả phải là 0)

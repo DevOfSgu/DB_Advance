@@ -112,13 +112,30 @@ create table bookLoanDetail(
 
 create table Penalty(
 	penaltyID int auto_increment primary key,
-    loanDetailID int not null,
+    loanDetailID INT NOT NULL UNIQUE, -- Mỗi lần mượn chỉ có 1 phiếu phạt tổng
     reason nvarchar(100),
-    fine decimal(10, 0) not null, 
     issuedDate date,
     paidDate date,
+    totalFine DECIMAL(10, 0) NOT NULL, -- Thêm cột tổng tiền phạt
     status ENUM('Unpaid', 'Paid') default 'Unpaid',
     foreign key (loanDetailID) references bookloanDetail(loanDetailID) ON DELETE CASCADE    
+);
+
+-- Bảng để lưu cấu hình các mức phạt
+CREATE TABLE FineRates (
+    violationCode VARCHAR(20) PRIMARY KEY, -- Mã loại vi phạm (ví dụ: 'LATE_RETURN')
+    description NVARCHAR(255),             -- Mô tả chi tiết
+    fineAmount DECIMAL(10, 0) NOT NULL     -- Số tiền phạt
+);
+
+-- Bảng Chi tiết Phiếu phạt - BẢNG MỚI
+CREATE TABLE PenaltyItems (
+    penaltyItemID INT AUTO_INCREMENT PRIMARY KEY,
+    penaltyID INT NOT NULL, -- Khóa ngoại trỏ tới bảng Penalty
+    violationCode VARCHAR(20) NOT NULL, -- Khóa ngoại trỏ tới bảng FineRates
+    fineAmountAtTime DECIMAL(10, 0) NOT NULL, -- Lưu lại số tiền phạt tại thời điểm vi phạm
+    FOREIGN KEY (penaltyID) REFERENCES Penalty(penaltyID) ON DELETE CASCADE,
+    FOREIGN KEY (violationCode) REFERENCES FineRates(violationCode) ON DELETE RESTRICT
 );
 
 ALTER TABLE Member
@@ -198,34 +215,70 @@ AFTER UPDATE ON bookLoanDetail
 FOR EACH ROW
 BEGIN
     DECLARE v_due_date DATE;
-    DECLARE v_fine DECIMAL(10, 0) DEFAULT 0;
-    DECLARE v_reason NVARCHAR(255) DEFAULT '';
+    DECLARE v_total_fine DECIMAL(10, 0) DEFAULT 0;
+    
+    DECLARE v_late_fine DECIMAL(10, 0);
+    DECLARE v_damage_fine DECIMAL(10, 0);
+    DECLARE v_lost_fine DECIMAL(10, 0);
 
-    -- Chỉ thực hiện khi sách được trả
+    DECLARE v_new_penalty_id INT;
+
     IF OLD.returnDate IS NULL AND NEW.returnDate IS NOT NULL THEN
-        -- Lấy ngày hẹn trả từ bảng bookLoans
-        SELECT dueDate INTO v_due_date FROM bookLoan WHERE loanID = NEW.loanID;
+        -- Đọc các mức phạt từ bảng cấu hình
+        SELECT fineAmount INTO v_late_fine FROM FineRates WHERE violationCode = 'LATE_RETURN';
+        SELECT fineAmount INTO v_damage_fine FROM FineRates WHERE violationCode = 'BOOK_DAMAGE';
+        SELECT fineAmount INTO v_lost_fine FROM FineRates WHERE violationCode = 'BOOK_LOST';
 
-        -- Kiểm tra nếu trả muộn
-        IF NEW.returnDate > v_due_date THEN
-            SET v_fine = v_fine + 20000; -- Phí phạt trả muộn (ví dụ)
-            SET v_reason = CONCAT(v_reason, 'Trả sách muộn; ');
+        -- Tính tổng tiền phạt (tương tự như trước)
+        IF NEW.returnDate > (SELECT dueDate FROM bookLoan WHERE loanID = NEW.loanID) THEN
+            SET v_total_fine = v_total_fine + v_late_fine;
         END IF;
-
-        -- Kiểm tra nếu sách bị hỏng hoặc mất
         IF NEW.bookConditionIn = 'Damaged' THEN
-            SET v_fine = v_fine + 50000; -- Phí phạt làm hỏng sách (ví dụ)
-            SET v_reason = CONCAT(v_reason, 'Làm hỏng sách; ');
+            SET v_total_fine = v_total_fine + v_damage_fine;
         ELSEIF NEW.bookConditionIn = 'Lost' THEN
-            SET v_fine = v_fine + 100000; -- Phí phạt làm mất sách (ví dụ)
-            SET v_reason = CONCAT(v_reason, 'Làm mất sách; ');
+            SET v_total_fine = v_total_fine + v_lost_fine;
         END IF;
 
-        -- Nếu có lý do phạt (tức là v_fine > 0) thì tạo phiếu phạt
-        IF v_fine > 0 THEN
-            INSERT INTO Penalty (loanDetailID, reason, fine, processDate, status)
-            VALUES (NEW.loanDetailID, TRIM(TRAILING '; ' FROM v_reason), v_fine, CURDATE(), 'Unpaid');
+        -- Nếu có phạt, thực hiện logic mới
+        IF v_total_fine > 0 THEN
+            -- 1. Tạo phiếu phạt chính (header)
+            INSERT INTO Penalty (loanDetailID, issuedDate, totalFine, status)
+            VALUES (NEW.loanDetailID, CURDATE(), v_total_fine, 'Unpaid');
+            
+            -- Lấy ID của phiếu phạt vừa tạo
+            SET v_new_penalty_id = LAST_INSERT_ID();
+
+            -- 2. Tạo các dòng chi tiết tương ứng
+            IF NEW.returnDate > (SELECT dueDate FROM bookLoan WHERE loanID = NEW.loanID) THEN
+                INSERT INTO PenaltyItems (penaltyID, violationCode, fineAmountAtTime)
+                VALUES (v_new_penalty_id, 'LATE_RETURN', v_late_fine);
+            END IF;
+            IF NEW.bookConditionIn = 'Damaged' THEN
+                INSERT INTO PenaltyItems (penaltyID, violationCode, fineAmountAtTime)
+                VALUES (v_new_penalty_id, 'BOOK_DAMAGE', v_damage_fine);
+            ELSEIF NEW.bookConditionIn = 'Lost' THEN
+                INSERT INTO PenaltyItems (penaltyID, violationCode, fineAmountAtTime)
+                VALUES (v_new_penalty_id, 'BOOK_LOST', v_lost_fine);
+            END IF;
         END IF;
+    END IF;
+END //
+
+DELIMITER ;
+
+-- Nó sẽ tự động cập nhật paidDate thành ngày hiện tại khi bạn UPDATE một phiếu phạt thành 'Paid'.
+
+DELIMITER //
+
+CREATE TRIGGER trg_set_paid_date_on_payment
+BEFORE UPDATE ON Penalty
+FOR EACH ROW
+BEGIN
+    -- Nếu trạng thái đang được cập nhật từ 'Unpaid' thành 'Paid'
+    -- và paidDate đang là NULL
+    IF OLD.status = 'Unpaid' AND NEW.status = 'Paid' AND OLD.paidDate IS NULL THEN
+        -- Tự động điền ngày thanh toán là ngày hiện tại
+        SET NEW.paidDate = CURDATE();
     END IF;
 END //
 
@@ -278,7 +331,7 @@ BEGIN
             -- Đếm số phiếu phạt chưa thanh toán còn lại của thành viên này
             SELECT COUNT(*) INTO v_unpaid_count
             FROM Penalty p
-            JOIN bookLoan_detail bld ON p.loanDetailID = bld.loanDetailID
+            JOIN bookLoanDetail bld ON p.loanDetailID = bld.loanDetailID
             JOIN bookLoan bl ON bld.loanID = bl.loanID
             WHERE bl.memberID = v_member_id AND p.status = 'Unpaid';
 
