@@ -115,7 +115,8 @@ create table Penalty(
     loanDetailID int not null,
     reason nvarchar(100),
     fine decimal(10, 0) not null, 
-    processDate date,
+    issuedDate date,
+    paidDate date,
     status ENUM('Unpaid', 'Paid') default 'Unpaid',
     foreign key (loanDetailID) references bookloanDetail(loanDetailID) ON DELETE CASCADE    
 );

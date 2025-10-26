@@ -226,7 +226,6 @@ INSERT INTO bookLoanDetail (loanID, copyID, returnDate, bookConditionOut, bookCo
 (3, 6, '2023-09-14', 'New', 'New'),
 (3, 11, '2023-09-14', 'New', 'New'),
 
--- === SỬA LỖI LOGIC TẠI ĐÂY ===
 -- Chi tiết cho loanID = 4 (Bây giờ là ĐANG MƯỢN, sẽ được UPDATE sau để tạo phạt)
 (4, 13, NULL, 'Good', NULL), -- Đổi returnDate thành NULL
 
@@ -266,7 +265,6 @@ UPDATE bookLoanDetail SET returnDate = CURDATE(), bookConditionIn = 'Damaged' WH
 -- Phạt 3: Trả đúng hạn nhưng làm hỏng sách (loanID=1, loanDetailID=2)
 UPDATE bookLoanDetail SET returnDate = CURDATE(), bookConditionIn = 'Damaged' WHERE loanDetailID = 2;
 
--- === SỬA LỖI TẠI ĐÂY ===
 -- Phạt 4: Trả đúng hạn nhưng làm hỏng sách (mô phỏng cho trường hợp mất sách)
 -- Đổi 'Lost' thành 'Damaged' để phù hợp với ENUM của bảng
 UPDATE bookLoanDetail SET returnDate = CURDATE(), bookConditionIn = 'Damaged' WHERE loanDetailID = 7;
@@ -279,7 +277,6 @@ UPDATE bookLoanDetail SET returnDate = CURDATE(), bookConditionIn = 'Damaged' WH
 
 -- Phạt 7: Trả đúng hạn nhưng làm hỏng sách (loanID=10, loanDetailID=13)
 UPDATE bookLoanDetail SET returnDate = CURDATE(), bookConditionIn = 'Damaged' WHERE loanDetailID = 13;
-
 
 -- BƯỚC 2: TẠO THÊM 3 PHIẾU MƯỢN MỚI ĐỂ KÍCH HOẠT TRIGGER
 
