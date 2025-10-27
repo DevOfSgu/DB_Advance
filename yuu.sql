@@ -11,11 +11,17 @@ from publisher p, book b
 where p.publisherID = b.publisherID
 group by p.publisherID;
 
--- 2. Yêu cầu: Tính tổng số tiền phạt đã thu được (các phiếu phạt đã trả).
-select pe.penaltyID, sum(pe.fine) as total_fine
-from penalty pe, bookLoanDetail bld
-where pe.loanDetailID = bld.loanDetailID and pe.status = 'Paid'
-group by pe.penaltyID;
+-- 2. Tính tổng số tiền phạt chưa thanh toán (Unpaid) của mỗi thành viên.
+SELECT 
+    M.memberName,
+    SUM(P.totalFine) AS TongTienPhatChuaThanhToan
+FROM Member M
+JOIN bookLoan BL ON M.memberID = BL.memberID
+JOIN bookLoanDetail BLD ON BL.loanID = BLD.loanID
+JOIN Penalty P ON BLD.loanDetailID = P.loanDetailID
+WHERE P.status = 'Unpaid'
+GROUP BY M.memberName
+ORDER BY TongTienPhatChuaThanhToan DESC;
 
 -- 7. Yêu cầu: Liệt kê các tác giả có từ 2 đầu sách trở lên trong thư viện.
 
