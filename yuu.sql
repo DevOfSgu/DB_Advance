@@ -5,34 +5,19 @@ UPDATE Penalty
 SET status = 'Paid' 
 WHERE penaltyID IN (1, 2, 3, 4, 5);
 
--- 1. Yêu cầu: Đếm số lượng đầu sách của mỗi nhà xuất bản
-select	p.publisherName, count(b.bookID) as total_book
-from publisher p, book b
-where p.publisherID = b.publisherID
-group by p.publisherID;
-
--- 2. Tính tổng số tiền phạt chưa thanh toán (Unpaid) của mỗi thành viên.
-SELECT 
-    M.memberName,
-    SUM(P.totalFine) AS TongTienPhatChuaThanhToan
-FROM Member M
-JOIN bookLoan BL ON M.memberID = BL.memberID
-JOIN bookLoanDetail BLD ON BL.loanID = BLD.loanID
-JOIN Penalty P ON BLD.loanDetailID = P.loanDetailID
-WHERE P.status = 'Unpaid'
-GROUP BY M.memberName
-ORDER BY TongTienPhatChuaThanhToan DESC;
-
--- 7. Yêu cầu: Liệt kê các tác giả có từ 2 đầu sách trở lên trong thư viện.
-
-
--- 8. Yêu cầu: Tìm những thành viên đã mượn sách từ 3 lần trở lên.
-
--- 9. Yêu cầu: Liệt kê các đầu sách được mượn nhiều hơn 2 lần.
+-- 11. Yêu cầu: Tìm những ngày có hơn 1 phiếu mượn được tạo và thủ thư thực hiện là 'Hoàng Thị Lan'.
 
 -- 12. Yêu cầu: Liệt kê các thành viên có tổng số tiền phạt (chưa tính đã trả hay chưa) lớn hơn 50000.
 
+-- 13. Yêu cầu: Tìm tất cả các bản sao sách (bookCopy) của tác giả 'Nguyễn Nhật Ánh'.
+
+-- 14. Yêu cầu: Liệt kê các thành viên đang mượn sách thuộc khu vực 'Văn học Việt Nam'.
+
 -- 15. Yêu cầu: Liệt kê những đầu sách chưa từng được mượn lần nào.
+
+-- 16. Yêu cầu: Liệt kê các thành viên chưa bao giờ bị phạt.
+
+-- 17. Yêu cầu: Tìm các bản sao sách hiện có sẵn (Available) thuộc thể loại 'Tiểu thuyết'.
 
 -- 18. Yêu cầu: Hiển thị lịch sử mượn sách của thành viên 'Nguyễn Văn An', bao gồm tên sách, ngày mượn, ngày trả.
 
