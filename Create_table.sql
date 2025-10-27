@@ -113,7 +113,6 @@ create table bookLoanDetail(
 create table Penalty(
 	penaltyID int auto_increment primary key,
     loanDetailID INT NOT NULL UNIQUE, -- Mỗi lần mượn chỉ có 1 phiếu phạt tổng
-    reason nvarchar(100),
     issuedDate date,
     paidDate date,
     totalFine DECIMAL(10, 0) NOT NULL, -- Thêm cột tổng tiền phạt
