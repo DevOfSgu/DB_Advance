@@ -181,7 +181,7 @@ INSERT INTO Librarian (librarianName, dayOfBirth, librarianPhoneNumber) VALUES
 ('Phạm Ngọc Ánh', '2000-11-03', '0868112233'),
 ('Vũ Đức Bảo', '1992-04-25', '0905987654');
 
--- Dữ liệu mẫu cho bảng bookLoans
+-- Dữ liệu mẫu cho bảng bookLoan
 INSERT INTO bookLoan (memberID, librarianID, borrowDate, dueDate, status) VALUES
 -- Tình huống 1: Phiếu đang mượn, còn hạn
 (1, 1, CURDATE() - INTERVAL 7 DAY, CURDATE() + INTERVAL 7 DAY, 'Borrowed'),
@@ -213,7 +213,7 @@ INSERT INTO bookLoan (memberID, librarianID, borrowDate, dueDate, status) VALUES
 -- Tình huống 10: Phiếu đang mượn, còn hạn
 (10, 5, CURDATE() - INTERVAL 5 DAY, CURDATE() + INTERVAL 9 DAY, 'Borrowed');
 
--- Dữ liệu mẫu cho bảng bookLoans_detail
+-- Dữ liệu mẫu cho bảng bookLoanDetail
 INSERT INTO bookLoanDetail (loanID, copyID, returnDate, bookConditionOut, bookConditionIn) VALUES
 -- Chi tiết cho loanID = 1 (Đang mượn)
 (1, 3, NULL, 'Good', NULL),
